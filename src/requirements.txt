@@ -1,0 +1,6 @@
+pymongo
+loguru
+glob2
+pathlib
+tqdm
+Flask
