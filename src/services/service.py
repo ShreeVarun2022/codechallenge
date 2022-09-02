@@ -9,8 +9,8 @@ from flask import request
 import sqlite3
 from sqlite3 import Error
 
-weather_data_dir = 'wx_data'
-yield_data_dir = 'yld_data'
+weather_data_dir = '../wx_data'
+yield_data_dir = '../yld_data'
 
 weather_data_files = glob(f'{weather_data_dir}/*.txt')
 
@@ -27,7 +27,7 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
-conn = sqlite3.connect('weather.db', check_same_thread=False)
+conn = sqlite3.connect('data/weather.db', check_same_thread=False)
 conn.execute('''CREATE TABLE IF NOT EXISTS weather
          (id TEXT PRIMARY   KEY     NOT NULL,
          station            TEXT    NOT NULL,
@@ -70,7 +70,7 @@ conn.close()
 
 yield_data_files = glob(f'{yield_data_dir}/*.txt')
 
-conn = sqlite3.connect('yield.db', check_same_thread=False)
+conn = sqlite3.connect('data/yield.db', check_same_thread=False)
 conn.execute('''CREATE TABLE IF NOT EXISTS yield
          (year TEXT PRIMARY   KEY     NOT NULL,
          crop_yield           TEXT    NOT NULL);''')
@@ -96,7 +96,7 @@ conn.close()
 app = Flask(__name__)
  
 def getStats(year='', station=''):
-    conn = sqlite3.connect('weather.db', check_same_thread=False)
+    conn = sqlite3.connect('data/weather.db', check_same_thread=False)
     conn.row_factory = dict_factory
     sql = ""
     if len(year) > 0 and len(station) > 0:
@@ -114,7 +114,7 @@ def getStats(year='', station=''):
     return responseObj
 
 def getWeather(year='', station=''):
-    conn = sqlite3.connect('weather.db', check_same_thread=False)
+    conn = sqlite3.connect('data/weather.db', check_same_thread=False)
     conn.row_factory = dict_factory
     sql = ""
     if len(year) > 0 and len(station) > 0:
@@ -132,7 +132,7 @@ def getWeather(year='', station=''):
     return responseObj
 
 def getYield(year=''):
-    conn = sqlite3.connect('yield.db', check_same_thread=False)
+    conn = sqlite3.connect('data/yield.db', check_same_thread=False)
     conn.row_factory = dict_factory
     sql = ""
     if len(year)>0:
@@ -144,50 +144,3 @@ def getYield(year=''):
     responseObj = json.dumps(data)
     conn.close()
     return responseObj
-    
-@app.route('/api/weather')
-def weather():
-    year = request.args.get('year')
-    station = request.args.get('station')
-    if year!=None:
-        a = year
-    else:
-        a = ''
-    if station!=None:
-        b = station
-    else:
-        b = ''
-    obj = getWeather(a, b)
-    return obj
-
-@app.route('/api/yield')
-def yield_():
-    year = request.args.get('year')
-    logger.info(year)
-    if year!=None:
-        a = year
-    else:
-        a = ''
-    return getYield(a)
-    
-@app.route('/api/weather/stats')
-def stats():
-    year = request.args.get('year')
-    station = request.args.get('station')
-    if year!=None:
-        a = year
-    else:
-        a = ''
-    if station!=None:
-        b = station
-    else:
-        b = ''
-    obj = getStats(a, b)
-    return obj
-
-if __name__ == '__main__':
-    conn = sqlite3.connect('test.db')
-    app.run()
-
-
-
